@@ -4,8 +4,10 @@ namespace rame0\API\Yandex;
 
 class TurboShop
 {
-    const TYPE_NOT_INIT = -2;
-    const TYPE_UNKNOWN = -1;
+    const TYPE_NOT_INIT = -100;
+    const TYPE_UNKNOWN = -10;
+    const TYPE_DATA_EMPTY = -1;
+    const TYPE_INCORRECT_JSON = 0;
     const TYPE_ACCEPT = 1;
     const TYPE_STATUS = 2;
 
@@ -13,8 +15,6 @@ class TurboShop
     private string $token = '';
     /** @var int */
     private int $type = self::TYPE_NOT_INIT;
-    /** @var array */
-    private array $post_data = [];
     /** @var string */
     private string $url_base;
 
@@ -33,14 +33,6 @@ class TurboShop
     }
 
     /**
-     * @return array
-     */
-    public function getPostData(): array
-    {
-        return $this->post_data;
-    }
-
-    /**
      * @param string $url
      * @return bool
      */
@@ -50,11 +42,8 @@ class TurboShop
             $url = $_SERVER['REQUEST_URI'];
         }
         if (!$this->isAuthorised()) {
-            $this->_setHTTPHeader('403 Forbidden');
             return false;
         }
-
-        $this->post_data = json_decode(file_get_contents('php://input'), true);
 
         switch ($url) {
             case $this->url_base . '/order/accept':
@@ -67,7 +56,6 @@ class TurboShop
 
             default:
                 $this->type = self::TYPE_UNKNOWN;
-                $this->_setHTTPHeader('400 Bad Request');
                 return false;
 
         }
@@ -79,11 +67,44 @@ class TurboShop
     public function isAuthorised(): bool
     {
         $headers = $this->_getHeaders();
-        if ($headers['authorization'] !== $this->token) {
+        if (empty($headers['authorization']) || $headers['authorization'] != $this->token) {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * @param string $fake_post_body
+     * @return array|mixed
+     * Value if decoded
+     * NULL if JSON can't be parsed or POST body = 'NULL'
+     */
+    public function parsePostBody($fake_post_body = '')
+    {
+        if (!empty($fake_post_body)) {
+            $json = $fake_post_body;
+        } else {
+            $json = file_get_contents('php://input');
+        }
+
+        if (empty($json)) {
+            return false;
+        }
+
+        return json_decode($json, true);
+    }
+
+    public function response400()
+    {
+        $this->_setHTTPHeader('400 Bad Request');
+        exit();
+    }
+
+    public function response403()
+    {
+        $this->_setHTTPHeader('403 Forbidden');
+        exit();
     }
 
     /**
