@@ -29,5 +29,8 @@
     "psr-4": {
       "rame0\\API\\Yandex\\Tests\\": "tests/API/Yandex"
     }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
   }
 }
