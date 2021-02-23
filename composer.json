@@ -1,0 +1,33 @@
+{
+  "name": "rame0/yandex-turbo-shopping-api",
+  "type": "library",
+  "description": "Yandex Turbo API for e-commerce sites",
+  "version": "0.0.1",
+  "authors": [
+    {
+      "name": "rame0",
+      "email": "r@me0.biz",
+      "homepage": "https://github.com/rame0"
+    }
+  ],
+  "keywords": [
+    "yandex",
+    "yandex turbo",
+    "яндекс",
+    "яндекс турбо"
+  ],
+  "license": "MIT",
+  "require": {
+    "php": "^7.4 || ^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "rame0\\API\\Yandex\\": "lib/API/Yandex"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "rame0\\API\\Yandex\\Tests\\": "tests/API/Yandex"
+    }
+  }
+}
