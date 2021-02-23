@@ -2,7 +2,7 @@
 
 namespace rame0\API\Yandex;
 
-class TurboShopping
+class TurboShop
 {
     const TYPE_NOT_INIT = -2;
     const TYPE_UNKNOWN = -1;
@@ -60,16 +60,16 @@ class TurboShopping
             case $this->url_base . '/order/accept':
                 $this->type = self::TYPE_ACCEPT;
                 return true;
-                break;
+
             case $this->url_base . '/order/status':
                 $this->type = self::TYPE_STATUS;
                 return true;
-                break;
+
             default:
                 $this->type = self::TYPE_UNKNOWN;
                 $this->_setHTTPHeader('400 Bad Request');
                 return false;
-                break;
+
         }
     }
 
