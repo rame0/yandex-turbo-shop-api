@@ -4,70 +4,27 @@ namespace rame0\API\Yandex;
 
 class TurboShop
 {
-    const TYPE_NOT_INIT = -100;
-    const TYPE_UNKNOWN = -10;
-    const TYPE_DATA_EMPTY = -1;
-    const TYPE_INCORRECT_JSON = 0;
-    const TYPE_ACCEPT = 1;
-    const TYPE_STATUS = 2;
-
     /** @var string */
     private string $token = '';
-    /** @var int */
-    private int $type = self::TYPE_NOT_INIT;
-    /** @var string */
-    private string $url_base;
 
-    public function __construct(string $API_TOKEN, string $url_base = '')
+    /**
+     * TurboShop constructor.
+     * @param $API_TOKEN
+     */
+    public function __construct($API_TOKEN)
     {
         $this->token = $API_TOKEN;
-        $this->url_base = $url_base;
     }
 
     /**
-     * @return int
-     */
-    public function getType(): int
-    {
-        return $this->type;
-    }
-
-    /**
-     * @param string $url
-     * @return bool
-     */
-    public function process($url = ''): bool
-    {
-        if (empty($url)) {
-            $url = $_SERVER['REQUEST_URI'];
-        }
-        if (!$this->isAuthorised()) {
-            return false;
-        }
-
-        switch ($url) {
-            case $this->url_base . '/order/accept':
-                $this->type = self::TYPE_ACCEPT;
-                return true;
-
-            case $this->url_base . '/order/status':
-                $this->type = self::TYPE_STATUS;
-                return true;
-
-            default:
-                $this->type = self::TYPE_UNKNOWN;
-                return false;
-
-        }
-    }
-
-    /**
+     * Check if token correct
      * @return bool
      */
     public function isAuthorised(): bool
     {
         $headers = $this->_getHeaders();
         if (empty($headers['authorization']) || $headers['authorization'] != $this->token) {
+            error_log('Unauthorised');
             return false;
         }
 
@@ -75,6 +32,7 @@ class TurboShop
     }
 
     /**
+     * Get POST body
      * @param string $fake_post_body
      * @return array|mixed
      * Value if decoded
@@ -89,25 +47,86 @@ class TurboShop
         }
 
         if (empty($json)) {
+            error_log('Can\'t read POST body');
             return false;
         }
 
-        return json_decode($json, true);
+        $array = json_decode($json, true);
+
+        if (empty($array) || empty($array['order'])) {
+            error_log('Can\'t parse JSON');
+            return false;
+        }
+        return $array['order'];
     }
 
-    public function response400()
+    /**
+     * Send Out Of Date respond
+     * @param string $debug_message
+     */
+    public function respondOutOfDate($debug_message = '')
     {
-        $this->_setHTTPHeader('400 Bad Request');
-        exit();
-    }
-
-    public function response403()
-    {
-        $this->_setHTTPHeader('403 Forbidden');
+        $this->_setHTTPHeader('200 Ok');
+        error_log('Sent out of date response' . (empty($debug_message) ? '' : ': ' . $debug_message));
+        echo '{"order":{"accepted":false,"reason":"OUT_OF_DATE"}}';
         exit();
     }
 
     /**
+     * Send Accept respond
+     * @param $id
+     */
+    public function respondAccept($id)
+    {
+        $this->_setHTTPHeader('200 Ok');
+        echo '{"order":{"accepted":true,"id":"' . $id . '"}}';
+        exit();
+    }
+
+    /**
+     * Send 200 OK respond
+     */
+    public function respond200()
+    {
+        $this->_setHTTPHeader('200 OK');
+        exit();
+    }
+
+    /**
+     * Send 400 respond
+     * @param string $debug_message
+     */
+    public function respond400($debug_message = '')
+    {
+        $this->_setHTTPHeader('400 Bad Request');
+        error_log('Sent bad request header' . (empty($debug_message) ? '' : ': ' . $debug_message));
+        exit();
+    }
+
+    /**
+     * Send 403 respond
+     * @param string $debug_message
+     */
+    public function respond403($debug_message = '')
+    {
+        $this->_setHTTPHeader('403 Forbidden');
+        error_log('Sent forbidden header' . (empty($debug_message) ? '' : ': ' . $debug_message));
+        exit();
+    }
+
+    /**
+     * Send 500 respond
+     * @param string $debug_message
+     */
+    public function respond500($debug_message = '')
+    {
+        $this->_setHTTPHeader('500 Internal Server Error');
+        error_log('Sent 500 Internal Server Error header' . (empty($debug_message) ? '' : ': ' . $debug_message));
+        exit();
+    }
+
+    /**
+     * Get request headers
      * @return array
      */
     private function _getHeaders(): array
@@ -135,6 +154,7 @@ class TurboShop
     }
 
     /**
+     * Set response headers
      * @param string $code_message
      */
     private function _setHTTPHeader(string $code_message)

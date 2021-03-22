@@ -30,14 +30,6 @@ class TurboShopTest extends TestCase
 
     }
 
-    public function testProcess()
-    {
-        $_SERVER['HTTP_Authorization'] = '123';
-
-        $this->assertSame($this->_api->process('asdf'), false);
-        $this->assertSame($this->_api->process('/order/accept'), true);
-    }
-
     public function testPostBody()
     {
         $_SERVER['HTTP_Authorization'] = '123';
